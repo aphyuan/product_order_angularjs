@@ -1,0 +1,97 @@
+<html ng-app = 'myApp'>
+  <head>
+    <meta charset="utf-8">
+    <title>Product::Factory</title>
+    <script src = 'bower_components/angular/angular.js'></script>
+    <script>
+      var app = angular.module('myApp', []);
+      //build a product factory
+      app.factory('productFactory', function(){
+        var products = [{name:'keyboard', price:149.99, quantity:50}, {name:'mouse', price:59, quantity:50}];
+        var factory = {};
+        factory.getProducts = function(cb){
+          cb(products);
+        }
+        factory.addProduct = function(product, cb){
+          products.push(product);
+          cb(products);
+        }
+        factory.deleteProduct = function(index, cb){
+          products.splice(index, 1);
+          cb(products)
+        }
+        return factory;
+      })
+
+      //product controller part
+      app.controller('productController', function($scope, productFactory){
+        $scope.products = [];
+        productFactory.getProducts(function(data){
+          $scope.products = data;
+        })
+        $scope.submitForm = function(){
+          productFactory.addProduct($scope.product, function(data){
+            $scope.products = data;
+            $scope.product = {};
+          })
+        }
+        $scope.delete = function(index){
+          productFactory.deleteProduct(index, function(data){
+            $scope.prodcts = data;
+          })
+        }
+      })
+
+      //orders controller part
+      app.controller('orderController', function($scope, productFactory){
+        $scope.orders = [];
+        productFactory.getProducts(function(data){
+          $scope.orders = data;
+        })
+      })
+
+    </script>
+  </head>
+  <body>
+    <fieldset ng-controller = 'productController'>
+      <legend>Product Controller</legend>
+      <form name="myForm" novalidate ng-submit="submitForm();">
+        <!-- <input type="hidden" ng-value="50" ng-model='product.quantity'> -->
+        <label>Product Name  <input type="text" ng-model='product.name' /></label>
+        <label>Product Price: <input type="number" ng-model='product.price' [ng-required="{number}"]/></label>
+        <input type="submit" value="Add Product" ng-init="product.quantity=50"/>
+      </form>
+
+      <table>
+        <tr>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Actions</th>
+        </tr>
+        <tr ng-repeat="product in products">
+          <td>{{ product.name }}</td>
+          <td>{{ product.price }}</td>
+          <td><input type="submit" value="Delete Product" ng-click="delete($index)"></td>
+        </tr>
+      </table>
+    </fieldset>
+
+    <fieldset ng-controller='orderController'>
+      <legend>Orders Controller</legend>
+      <table>
+        <tr>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Qty Available</th>
+          <th>Actions</th>
+        </tr>
+        <tr ng-repeat="order in orders">
+          <td>{{ order.name }}</td>
+          <td>{{ order.price }}</td>
+          <td>{{ order.quantity }}</td>
+          <td><input type="submit" value="Buy" ng-click="order.quantity = order.quantity - 1" ng-if="order.quantity > 0"></td>
+        </tr>
+      </table>
+    </fieldset>
+  </body>
+</html>
